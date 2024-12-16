@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=cooperfilme
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./initialData.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./postgres-data:/var/lib/postgresql/data
+
+  api:
+    depends_on:
+      - postgres
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    working_dir: /usr/src/cooperfilme/api
+    container_name: cooperfilme_api
+    restart: on-failure
+    ports:
+      - 8080:8080
+    stdin_open: true
+    tty: true
+
+  app:
+    depends_on:
+      - api
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    working_dir: /usr/src/cooperfilme/app
+    container_name: cooperfilme_app
+    restart: on-failure
+    ports:
+      - 80:80
+    stdin_open: true
+    tty: true
